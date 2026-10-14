@@ -8,3 +8,6 @@
 [submodule "lib/RecompFrontend"]
 	path = lib/RecompFrontend
 	url = https://github.com/N64Recomp/RecompFrontend
+[submodule "tools/N64Recomp"]
+	path = tools/N64Recomp
+	url = https://github.com/N64Recomp/N64Recomp

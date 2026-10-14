@@ -5,7 +5,7 @@ Last updated: 2026-10-13. Published at https://github.com/CalenCyr/SlugfestRecom
 ## Where things stand
 
 - Boots, intro, title screen, menus, attract mode and an Exhibition game all run, with audio, the controller in port 1, and FlashRAM saving (`~/.config/SlugfestRecompiled/saves/`).
-- Regenerate code with `scripts/regenerate.sh` (inputs in `recomp/`, N64Recomp/RSPRecomp binaries from `../N64Recomp`). Build with CMake (see BUILDING.md). Run from the project root.
+- Regenerate code with `scripts/regenerate.sh` (inputs in `recomp/`; N64Recomp/RSPRecomp built from the `tools/N64Recomp` submodule into `build-tools/`). Build with CMake (see BUILDING.md). Run from the project root.
 - Defaults for new installs: aspect ratio Original (Expand makes the 2D title/art screens flicker) and refresh rate Original (Display makes RT64 add in-between frames, and motion plays at double speed even though the game runs at the correct 30 fps).
 
 ## Open issues (in suggested order)
@@ -14,7 +14,7 @@ Last updated: 2026-10-13. Published at https://github.com/CalenCyr/SlugfestRecom
 2. **More play-testing:** Home Run Derby, season mode, save/load, Controller Pak, rumble. Expect more busy-wait loops like `func_8006EA30` (fix: `[[patches.hook]]` calling `yield_self_1ms(rdram)` inside the loop).
 3. **Occasional crash when closing the window** (seen once, 2026-10-13, core dump unusable because the binary had been rebuilt). Harmless for saves; if it recurs, `coredumpctl debug` on the matching build.
 4. **Windows:** `src/game/memory_mirror.cpp` (KSEG1 mirror + guard below RDRAM) is Linux-only.
-5. **Cleanup:** if the memory guard ever fires, the core dump names the game function writing through a physical address. `~/Code/N64Recomp` still holds old generated files (asm/, build/, RecompiledFuncs/, kengriffey_decomp.z64, toplevel.bin, *.ld/*.map) that nothing uses.
+5. **Cleanup:** if the memory guard ever fires, the core dump names the game function writing through a physical address. `~/Code/N64Recomp` is no longer used by this project (N64Recomp is now the `tools/N64Recomp` submodule) and can be deleted, along with the old generated files in it.
 
 ## Debugging recipes
 

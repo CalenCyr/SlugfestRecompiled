@@ -3,7 +3,7 @@
 Ken Griffey Jr.'s Slugfest: Recompiled is built in two stages: the game's code is recompiled to C, then compiled into the runtime app.
 
 - `recomp/` holds the recompiler inputs: the splat config (`kengriffeyslugfest.yaml`), `symbol_addrs.txt`, `reloc_addrs.txt`, `undefined_syms_manual.txt`, the N64Recomp config (`kengriffey.toml`), the ELF build script and the ROM tools.
-- The `N64Recomp` and `RSPRecomp` binaries come from an [N64Recomp](https://github.com/N64Recomp/N64Recomp) checkout, by default `../N64Recomp` next to this project (override with `N64RECOMP_DIR`).
+- [N64Recomp](https://github.com/N64Recomp/N64Recomp) is a submodule at `tools/N64Recomp`. `scripts/regenerate.sh` builds `N64Recomp` and `RSPRecomp` from it into `build-tools/` the first time it runs.
 
 ## Prerequisites (Fedora)
 
@@ -11,7 +11,6 @@ Ken Griffey Jr.'s Slugfest: Recompiled is built in two stages: the game's code i
 - `SDL2-devel`, `freetype-devel`, `gtk3-devel` (for the file dialog), Vulkan headers/loader
 - For regenerating code: `splat64` (`pip install splat64`) and the MIPS cross binutils (`binutils-mips64-linux-gnu`)
 - Your own Ken Griffey Jr.'s Slugfest (USA) ROM, as `recomp/baserom.z64` (big-endian `.z64`, XXH3 `0x7DA2C678136D0287`)
-- A built N64Recomp checkout (`N64Recomp` binary in its root)
 
 ## 1. Get the dependencies
 
