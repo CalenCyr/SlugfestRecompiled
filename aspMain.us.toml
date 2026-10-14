@@ -1,0 +1,16 @@
+# Ken Griffey Jr.'s Slugfest audio microcode.
+# toplevel's audio OSTask (built in func_80073CD0): ucode_boot = 0x80089F50 (rspboot, 0xD0),
+# ucode = 0x8008C540 (text, 0xE20 bytes up to 0x8008D360), ucode_data = 0x80098FD0 (0x800).
+# toplevel sits at ROM 0x1000000 in the working ROM built by recomp/tools/build_decomp_rom.py,
+# so the text is at 0x1000000 + (0x8008C540 - 0x8006A8A0).
+text_offset = 0x1021CA0
+text_size = 0xE20
+text_address = 0x04001080
+rom_file_path = "recomp/kengriffey_decomp.z64"
+output_file_path = "rsp/aspMain.cpp"
+output_function_name = "aspMain"
+extra_indirect_branch_targets = [
+    # Command dispatch table at DMEM 0x10 of ucode_data.
+    0x1118, 0x1470, 0x11DC, 0x1B38, 0x1214, 0x187C, 0x1254, 0x12D0,
+    0x12EC, 0x1328, 0x140C, 0x1294, 0x1E24, 0x138C, 0x170C, 0x144C,
+]

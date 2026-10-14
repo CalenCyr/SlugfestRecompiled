@@ -1,0 +1,208 @@
+#Config file for
+
+[input]
+entrypoint = 0x80061600
+# Paths are relative to the location of this config file.
+elf_path = "build/kengriffeyslugfest.elf"
+directory = "output"
+output_func_path = "../RecompiledFuncs"
+
+manual_funcs = [
+]
+
+[patches]
+stubs = [
+]
+
+ignored = [
+# Unreferenced duplicate of osGetCount (mfc0 Count). All other libultra
+# functions are named in symbol_addrs.txt and handled by N64Recomp's built-in lists.
+"boot_GetCount",
+# Boot loader's osPiRawStartDma; implemented natively as a ROM read in SlugfestRecomp.
+"boot_osPiRawStartDma",
+# Static libultra PFS helpers N64Recomp doesn't list. They call PFS internals that
+# N64Recomp ignores, and they're only reachable from the reimplemented osPfs* functions.
+"__osPfsDeclearPage",
+"__osClearPage",
+"__osPfsReleasePages",
+"__osBlockSum",
+"__osSumcalc",
+"__osIdCheckSum",
+# Only called by osSpTaskLoad, which N64ModernRuntime reimplements.
+"_VirtualToPhysicalTask",
+# Small data tables embedded in handwritten audio code in toplevel's .text (see the
+# instruction patches below); not code.
+"func_8007926C",
+"func_80079328"
+]
+
+# Hooks
+
+# Single-instruction patches
+# Handwritten code in toplevel (0x80079180-0x80079790) gets the address of an embedded table
+# or code fragment PC-relatively: `bltzal $zero, X` (never taken, but sets $ra) followed by
+# `addiu $reg, $ra, imm`. N64Recomp doesn't set $ra for an untaken branch-and-link, so
+# replace the pair with `lui $reg, %hi(X)` / `addiu $reg, $reg, %lo(X)`.
+
+# $t7 = 0x8007926C
+[[patches.instruction]]
+func = "func_80079180"
+vram = 0x80079190
+value = 0x3C0F8008 # lui $t7, 0x8008
+
+[[patches.instruction]]
+func = "func_80079180"
+vram = 0x80079198
+value = 0x25EF926C # addiu $t7, $t7, 0x926C
+
+# $t0 = 0x80079328
+[[patches.instruction]]
+func = "func_80079274"
+vram = 0x8007929C
+value = 0x3C088008 # lui $t0, 0x8008
+
+[[patches.instruction]]
+func = "func_80079274"
+vram = 0x800792A4
+value = 0x25089328 # addiu $t0, $t0, 0x9328
+
+# $t3 = 0x800796EC
+[[patches.instruction]]
+func = "func_800794F4"
+vram = 0x80079554
+value = 0x3C0B8008 # lui $t3, 0x8008
+
+[[patches.instruction]]
+func = "func_800794F4"
+vram = 0x8007955C
+value = 0x256B96EC # addiu $t3, $t3, 0x96EC
+
+# $t3 = 0x80079704
+[[patches.instruction]]
+func = "func_800794F4"
+vram = 0x80079578
+value = 0x3C0B8008 # lui $t3, 0x8008
+
+[[patches.instruction]]
+func = "func_800794F4"
+vram = 0x80079580
+value = 0x256B9704 # addiu $t3, $t3, 0x9704
+
+# $t3 = 0x80079714
+[[patches.instruction]]
+func = "func_800794F4"
+vram = 0x8007959C
+value = 0x3C0B8008 # lui $t3, 0x8008
+
+[[patches.instruction]]
+func = "func_800794F4"
+vram = 0x800795A4
+value = 0x256B9714 # addiu $t3, $t3, 0x9714
+
+# $t3 = 0x8007972C
+[[patches.instruction]]
+func = "func_800794F4"
+vram = 0x800795C0
+value = 0x3C0B8008 # lui $t3, 0x8008
+
+[[patches.instruction]]
+func = "func_800794F4"
+vram = 0x800795C8
+value = 0x256B972C # addiu $t3, $t3, 0x972C
+
+# Game code that builds uncached (KSEG1) aliases of its own RAM, mostly framebuffers:
+# `lui $reg, 0xA000` then `or $dst, $ptr, $reg`. N64ModernRuntime only maps KSEG0, so an
+# 0xA0xxxxxx address would fault. Build the cached alias (0x80000000) instead; it's the same RDRAM.
+
+[[patches.instruction]]
+func = "func_8006C718"
+vram = 0x8006C728
+value = 0x3C018000 # lui $at, 0x8000 (was 0xA000)
+
+[[patches.instruction]]
+func = "func_8006C758"
+vram = 0x8006C830
+value = 0x3C018000 # lui $at, 0x8000 (was 0xA000)
+
+[[patches.instruction]]
+func = "func_80075910"
+vram = 0x80075920
+value = 0x3C018000 # lui $at, 0x8000 (was 0xA000)
+
+[[patches.instruction]]
+func = "func_80077714"
+vram = 0x80077730
+value = 0x3C058000 # lui $a1, 0x8000 (was 0xA000)
+
+[[patches.instruction]]
+func = "func_80077778"
+vram = 0x80077794
+value = 0x3C088000 # lui $t0, 0x8000 (was 0xA000)
+
+[[patches.instruction]]
+func = "func_8011CC00"
+vram = 0x8011CCAC
+value = 0x3C018000 # lui $at, 0x8000 (was 0xA000)
+
+[[patches.instruction]]
+func = "func_8012D2E4"
+vram = 0x8012D314
+value = 0x3C088000 # lui $t0, 0x8000 (was 0xA000)
+
+# func_80199BA0_frontend also builds an 0xA0000000 address, but it's a cartridge-bus (flash) base
+# address, not RAM, and nothing calls the function, so it's deliberately left unpatched.
+
+# Overlay registration hooks (implemented in SlugfestRecomp/src/game/overlays.cpp).
+# The game decompresses its code modules from ROM itself, so N64ModernRuntime never sees a ROM DMA
+# it can match to a section; tell it directly which module was loaded.
+
+# boot_main has just decompressed toplevel and is about to jump to it.
+[[patches.hook]]
+func = "boot_main"
+before_vram = 0x80061850
+text = "{ extern void slugfest_on_toplevel_loaded(uint8_t*, recomp_context*); slugfest_on_toplevel_loaded(rdram, ctx); }"
+
+# load_code(file_index, dest): entry of toplevel's code-module loader. $a0/$a1 are still the arguments.
+[[patches.hook]]
+func = "func_80071708"
+before_vram = 0x80071708
+text = "{ extern void slugfest_on_load_code(uint8_t*, recomp_context*); slugfest_on_load_code(rdram, ctx); }"
+
+# Graphics scheduler (toplevel's modified libultra sched.c, scheduling at func_8007572C): it starts the
+# next graphics task as soon as the RSP is free and no buffer swap is pending, without checking that the
+# RDP has finished the previous one (sc->curRDPTask, 0x278). On hardware the RDP always finishes first,
+# but N64ModernRuntime reports RSP completion before RT64 has rendered the frame, so the next task
+# overwrote curRDPTask and the second RDP-done tripped `assert(sc->curRDPTask)` (sched.c:494).
+# After the gfx-ready check returns, treat the task as not ready while the RDP is busy (as stock sched.c does).
+[[patches.hook]]
+func = "func_8007572C"
+before_vram = 0x80075760
+text = "if (MEM_W(0x278, MEM_W(0x20, ctx->r29)) != 0) { ctx->r2 = 0; }"
+
+# __scTaskComplete (func_800753A0) sends each finished task's reply with OS_MESG_BLOCK. The intro's
+# first graphics task of each frame replies to D_80090770, which the game never reads: on hardware
+# that task's display list doesn't end in a full sync, so the RDP never interrupts for it and the
+# reply is never sent. N64ModernRuntime signals RDP completion for every gfx task, so the queue
+# fills after 8 frames and the scheduler blocks forever. Send replies with OS_MESG_NOBLOCK instead;
+# queues the game actually drains never fill, so only the unread replies are dropped.
+[[patches.instruction]]
+func = "func_800753A0"
+vram = 0x800753FC
+value = 0x24060000 # addiu $a2, $zero, 0 (OS_MESG_NOBLOCK, was 1)
+
+# func_8006EA30 (used when leaving attract mode and on other mode changes) busy-waits for each
+# sound player to stop: `while (func_8007CA80(player)) {}`. On hardware interrupts pre-empt the
+# loop; N64ModernRuntime only switches game threads at OS calls, so the loop starved the threads
+# that update the player state. Let the runtime deliver events / switch threads on each pass.
+[[patches.hook]]
+func = "func_8006EA30"
+before_vram = 0x8006EAF4
+text = "{ extern void yield_self_1ms(uint8_t*); yield_self_1ms(rdram); }"
+
+# Frame submit (func_8012D2E4): cap the frame rate (see SlugfestRecomp/src/game/frame_pacing.cpp).
+# The game steps its logic by a fixed amount per frame and ran too fast at the 60 frames per second
+# recompiled code can reach.
+[[patches.hook]]
+func = "func_8012D2E4"
+before_vram = 0x8012D2E4
+text = "{ extern void slugfest_pace_frame(uint8_t*, recomp_context*); slugfest_pace_frame(rdram, ctx); }"

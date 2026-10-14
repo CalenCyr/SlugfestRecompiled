@@ -1,0 +1,200 @@
+name: Ken Griffey Slugfest (North America)
+# baserom.z64 with every code module (toplevel + overlays) decompressed and appended at 0x1000000.
+# Rebuild with: python3 tools/build_decomp_rom.py baserom.z64 kengriffey_decomp.z64
+sha1: 9c0286d85bf830f2672348394bad1ca3c39891d2
+options:
+  basename: kengriffeyslugfest
+  target_path: kengriffey_decomp.z64
+  elf_path: build/kengriffeyslugfest.elf
+  base_path: .
+  platform: n64
+  compiler: IDO
+
+  # asm_path: asm
+  # src_path: src
+  # build_path: build
+  # create_asm_dependencies: True
+
+  ld_script_path: kengriffeyslugfest.ld
+  ld_dependencies: True
+
+  find_file_boundaries: True
+  header_encoding: ASCII
+
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  mips_abi_float_regs: o32
+
+  # section_order: [".text", ".data", ".rodata", ".bss"]
+  # auto_link_sections: [".data", ".rodata", ".bss"]
+
+  symbol_addrs_path:
+    - symbol_addrs.txt
+  reloc_addrs_path:
+    - reloc_addrs.txt
+
+  # undefined_funcs_auto_path: undefined_funcs_auto.txt
+  # undefined_syms_auto_path: undefined_syms_auto.txt
+
+  extensions_path: tools/splat_ext
+
+  # string_encoding: ASCII
+  # data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+  # libultra_symbols: True
+  # hardware_regs: True
+  # gfx_ucode: # one of [f3d, f3db, f3dex, f3dexb, f3dex2]
+segments:
+  - name: header
+    type: header
+    start: 0x0
+
+  - name: ipl3
+    type: bin
+    start: 0x40
+
+  - name: entry
+    type: code
+    start: 0x1000
+    vram: 0x80061600
+    subsegments:
+      - [0x1000, hasm]
+
+  - name: main
+    type: code
+    start: 0x1060
+    vram: 0x80061660
+    follows_vram: entry
+    bss_size: 0x2530
+    subsegments:
+      - [0x1060, asm]
+      - [0x68A0, bin]  # .data/.rodata (0x80066EA0-0x80068360)
+      - { type: bss, vram: 0x80068360 }
+
+  - type: bin
+    start: 0x7D60
+
+  # Decompressed copy of ROM file 0 ("toplevel", originally ROM 0xC165E0-0xC32F70).
+  # The boot loader decompresses it to 0x8006A8A0 and jumps to 0x8006B794.
+  - name: toplevel
+    type: code
+    start: 0x1000000
+    vram: 0x8006A8A0
+    bss_size: 0x608A0
+    subsegments:
+      - [0x1000000, asm]
+      - [0x101F6B0, bin]  # RSP microcode (rspboot + ucode text), 0x80089F50
+      - [0x1022AC0, data] # 0x8008D360
+      - { type: bss, vram: 0x80099290 }
+
+  # Overlay modules from the boot segment's module table (D_80067DA8). Each module's
+  # code file and data file are decompressed and appended back to back by
+  # tools/build_decomp_rom.py. Modules sharing a load address get an exclusive_ram_id
+  # (so they don't resolve symbols into each other) and $VRAM_$SEG names (so they don't
+  # collide). frontend also overlaps the 0x801B0930 slot; it is never loaded with those.
+  - name: globals
+    type: code
+    start: 0x102E9F0
+    vram: 0x800F9B30
+    bss_size: 0x3C60
+    subsegments:
+      - [0x102E9F0, asm]
+      - [0x1039C00, data]
+      - { type: bss, vram: 0x80106C20 }
+
+  - name: arts
+    type: code
+    start: 0x103BAE0
+    vram: 0x8010A880
+    bss_size: 0x780
+    subsegments:
+      - [0x103BAE0, asm]
+      - [0x1065C80, data]
+      - { type: bss, vram: 0x8014BC40 }
+
+  - name: frontend
+    type: code
+    start: 0x107CEA0
+    vram: 0x8014C3C0
+    bss_size: 0xFE0
+    exclusive_ram_id: slot_8014C3C0
+    symbol_name_format: $VRAM_$SEG
+    subsegments:
+      - [0x107CEA0, asm]
+      - [0x1112920, data]
+      - { type: bss, vram: 0x801F9290 }
+
+  - name: gamebase
+    type: code
+    start: 0x1129D70
+    vram: 0x8014C3C0
+    bss_size: 0x3B80
+    exclusive_ram_id: slot_8014C3C0
+    symbol_name_format: $VRAM_$SEG
+    subsegments:
+      - [0x1129D70, asm]
+      - [0x117C7C0, data]
+      - { type: bss, vram: 0x801ACDB0 }
+
+  - name: flythru
+    type: code
+    start: 0x118A760
+    vram: 0x801B0930
+    bss_size: 0x10
+    exclusive_ram_id: slot_801B0930
+    symbol_name_format: $VRAM_$SEG
+    subsegments:
+      - [0x118A760, asm]
+      - [0x118BAE0, data]
+      - { type: bss, vram: 0x801B1E90 }
+
+  - name: intro
+    type: code
+    start: 0x118BCC0
+    vram: 0x801B0930
+    bss_size: 0x10
+    exclusive_ram_id: slot_801B0930
+    symbol_name_format: $VRAM_$SEG
+    subsegments:
+      - [0x118BCC0, asm]
+      - [0x118D090, data]
+      - { type: bss, vram: 0x801B2000 }
+
+  - name: game
+    type: code
+    start: 0x118D390
+    vram: 0x801B0930
+    bss_size: 0x490
+    exclusive_ram_id: slot_801B0930
+    symbol_name_format: $VRAM_$SEG
+    subsegments:
+      - [0x118D390, asm]
+      - [0x11F73D0, data]
+      - { type: bss, vram: 0x8022C7C0 }
+
+  - name: derby
+    type: code
+    start: 0x1209220
+    vram: 0x801B0930
+    bss_size: 0x50
+    exclusive_ram_id: slot_801B0930
+    symbol_name_format: $VRAM_$SEG
+    subsegments:
+      - [0x1209220, asm]
+      - [0x120F3D0, data]
+      - { type: bss, vram: 0x801B7DF0 }
+
+  - name: party
+    type: code
+    start: 0x12106E0
+    vram: 0x801B0930
+    bss_size: 0x10
+    exclusive_ram_id: slot_801B0930
+    symbol_name_format: $VRAM_$SEG
+    subsegments:
+      - [0x12106E0, asm]
+      - [0x12184F0, data]
+      - { type: bss, vram: 0x801BB040 }
+
+  - [0x121ADF0]

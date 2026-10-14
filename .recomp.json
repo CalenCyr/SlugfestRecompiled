@@ -1,0 +1,45 @@
+{
+  "$schema": "https://recomp.fyi/schema/v1.json",
+  "game": "Ken Griffey Jr.'s Slugfest",
+  "wikidata": "Q3195037",
+  "system": "N64",
+  "type": "recomp",
+  "status": "playable",
+  "original": {
+    "region": "USA",
+    "revision": "1.0",
+    "serial": "NUS-NKJE-USA",
+    "sha1": "ec33cd4d44bba163f89e435c2aefbf7313d8cece"
+  },
+  "project": "Ken Griffey Jr.'s Slugfest: Recompiled",
+  "targets": [
+    "Linux"
+  ],
+  "toolchain": [
+    "N64recomp",
+    "Splat"
+  ],
+  "approach": "Static recompilation with N64Recomp and N64ModernRuntime, rendered with RT64; the game's compressed code modules are decompressed and recompiled as overlays.",
+  "notes": "Boots through the intro, menus, attract mode and Exhibition games with audio, controller and FlashRAM saves. The game is held at its original 30 fps because it steps its logic once per frame. Includes an RT64 fix for flickering player shadows (primitive depth).",
+  "help": [
+    "Play-testing Home Run Derby, season mode, Controller Pak and rumble",
+    "Windows support for the uncached memory mirror",
+    "Widescreen on the 2D title and art screens"
+  ],
+  "tags": [
+    "baseball",
+    "sports"
+  ],
+  "maintainers": [
+    {
+      "name": "Calen",
+      "link": "https://github.com/CalenCyr"
+    }
+  ],
+  "links": [
+    {
+      "label": "Source",
+      "url": "https://github.com/CalenCyr/SlugfestRecompiled"
+    }
+  ]
+}

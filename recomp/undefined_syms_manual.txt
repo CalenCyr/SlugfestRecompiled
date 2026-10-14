@@ -1,0 +1,30 @@
+/* Cross-module references splat leaves undefined: game/derby/party point into gamebase's
+   data/bss, but frontend's code overlaps those addresses, so splat names them after the
+   referencing module without defining them. frontend's data also holds one jump-table
+   entry (0x80196EE0) that splat doesn't recognise as a label. Values are absolute. */
+".L801A2B40_party" = 0x801A2B40;
+".L801ACF90_derby" = 0x801ACF90;
+".L801A4200_party" = 0x801A4200;
+".L801A7670_derby" = 0x801A7670;
+".L801A1C3C_game" = 0x801A1C3C;
+".L801ACDB0_party" = 0x801ACDB0;
+".L801A29E0_derby" = 0x801A29E0;
+".L801ACFA8_game" = 0x801ACFA8;
+".L801A6F68_game" = 0x801A6F68;
+".L801ACDB8_derby" = 0x801ACDB8;
+".L801A6F50_game" = 0x801A6F50;
+".L801A6FFC_game" = 0x801A6FFC;
+".L801A7048_game" = 0x801A7048;
+".L801A7010_game" = 0x801A7010;
+".L801A6788_game" = 0x801A6788;
+".L801A6770_game" = 0x801A6770;
+".L801ACDC0_game" = 0x801ACDC0;
+".L801A7408_game" = 0x801A7408;
+".L801A73E8_game" = 0x801A73E8;
+".L801A7368_game" = 0x801A7368;
+".L801A6EA0_game" = 0x801A6EA0;
+".L801A6A48_game" = 0x801A6A48;
+".L801A6A38_game" = 0x801A6A38;
+".L801A6030_game" = 0x801A6030;
+".L801A5F80_game" = 0x801A5F80;
+"func_80196EE0" = 0x80196EE0;
