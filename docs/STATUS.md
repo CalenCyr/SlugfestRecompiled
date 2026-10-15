@@ -6,15 +6,15 @@ Last updated: 2026-10-13. Published at https://github.com/CalenCyr/SlugfestRecom
 
 - Boots, intro, title screen, menus, attract mode and an Exhibition game all run, with audio, the controller in port 1, and FlashRAM saving (`~/.config/SlugfestRecompiled/saves/`).
 - Regenerate code with `scripts/regenerate.sh` (inputs in `recomp/`; N64Recomp/RSPRecomp built from the `tools/N64Recomp` submodule into `build-tools/`). Build with CMake (see BUILDING.md). Run from the project root.
-- Defaults for new installs: aspect ratio Original (Expand makes the 2D title/art screens flicker) and refresh rate Original (Display makes RT64 add in-between frames, and motion plays at double speed even though the game runs at the correct 30 fps).
+- Widescreen: with the Expand aspect ratio, gameplay (game, derby, party, flythru modules) renders at the window's width and the menus and title stay 4:3 (`src/game/aspect_ratio.cpp` switches RT64 to Original while no 3D module is loaded; the menu panels use the same full-screen perspective projection as gameplay, so RT64 can't tell them apart itself).
+- Defaults for new installs: refresh rate Original (Display makes RT64 add in-between frames, and motion plays at double speed even though the game runs at the correct 30 fps). The aspect ratio uses RecompFrontend's default (Expand).
 
 ## Open issues (in suggested order)
 
-1. **Expand (widescreen) on 2D screens:** the background the CPU writes into the framebuffer is misplaced. Needs a game-specific RT64 fix; optional.
-2. **More play-testing:** Home Run Derby, season mode, save/load, Controller Pak, rumble. Expect more busy-wait loops like `func_8006EA30` (fix: `[[patches.hook]]` calling `yield_self_1ms(rdram)` inside the loop).
-3. **Occasional crash when closing the window** (seen once, 2026-10-13, core dump unusable because the binary had been rebuilt). Harmless for saves; if it recurs, `coredumpctl debug` on the matching build.
-4. **Windows:** `src/game/memory_mirror.cpp` (KSEG1 mirror + guard below RDRAM) is Linux-only.
-5. **Cleanup:** if the memory guard ever fires, the core dump names the game function writing through a physical address. `~/Code/N64Recomp` is no longer used by this project (N64Recomp is now the `tools/N64Recomp` submodule) and can be deleted, along with the old generated files in it.
+1. **More play-testing:** Home Run Derby, season mode, save/load, Controller Pak, rumble. Expect more busy-wait loops like `func_8006EA30` (fix: `[[patches.hook]]` calling `slugfest_yield_1ms(rdram)` inside the loop; not `yield_self_1ms`, which crashes on quit).
+2. **Widescreen details:** in Expand, gameplay HUD panels that slide in from off-screen are visible in the side areas while they move. Untested: the settings menu opened mid-game, Home Run Derby, and the in-game pause menu (gamebase/game are loaded, so it is widened).
+3. **Windows:** `src/game/memory_mirror.cpp` (KSEG1 mirror + guard below RDRAM) is Linux-only.
+4. **Cleanup:** if the memory guard ever fires, the core dump names the game function writing through a physical address. `~/Code/N64Recomp` is no longer used by this project (N64Recomp is now the `tools/N64Recomp` submodule) and can be deleted, along with the old generated files in it.
 
 ## Debugging recipes
 
@@ -41,6 +41,8 @@ RT64 (`lib/rt64` points at the fork https://github.com/CalenCyr/rt64, branch `sl
 - To update RT64: rebase `slugfest-prim-depth` on the new upstream commit, push to the fork, and update the submodule pointer.
 
 Runtime project (`src/`):
+- `yield.cpp`: crash when quitting mid-game. `recomp::start` unmaps RDRAM on quit without stopping game threads; the frame cap's wait loop kept calling `yield_self_1ms`, which reads the running queue from RDRAM (segfault every time the quit landed during a wait). `slugfest_yield_1ms` parks the thread once the runtime is exiting; use it for every native busy-wait.
+- `aspect_ratio.cpp`: widescreen only in 3D scenes (see above).
 - `overlays.cpp`: tracks loaded modules and calls `unload_overlays`/`load_overlays` per module.
 - `frame_pacing.cpp`: caps the game at one frame per 2 video refreshes (30 fps). The game steps its logic a fixed amount per frame with no limiter of its own; uncapped, the menus ran at 60 and gameplay ran at 30 or 60 depending on RT64's presentation mode (Display = double speed). Uses the game's refresh counter (0x80090674) so its measured frame time (0x8014A45C) stays consistent. `SLUGFEST_FRAME_REFRESHES=N` overrides.
 - `runtime_stubs.cpp`: libultra functions this runtime version lacks.

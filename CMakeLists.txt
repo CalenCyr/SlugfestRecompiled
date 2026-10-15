@@ -100,12 +100,14 @@ set(SOURCES
     ${CMAKE_SOURCE_DIR}/src/main/main.cpp
     ${CMAKE_SOURCE_DIR}/src/main/register_overlays.cpp
 
+    ${CMAKE_SOURCE_DIR}/src/game/aspect_ratio.cpp
     ${CMAKE_SOURCE_DIR}/src/game/config.cpp
     ${CMAKE_SOURCE_DIR}/src/game/memory_mirror.cpp
     ${CMAKE_SOURCE_DIR}/src/game/overlays.cpp
     ${CMAKE_SOURCE_DIR}/src/game/frame_pacing.cpp
     ${CMAKE_SOURCE_DIR}/src/game/rom_decompression.cpp
     ${CMAKE_SOURCE_DIR}/src/game/runtime_stubs.cpp
+    ${CMAKE_SOURCE_DIR}/src/game/yield.cpp
 
     ${CMAKE_SOURCE_DIR}/rsp/aspMain.cpp
 )

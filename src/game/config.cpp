@@ -20,22 +20,24 @@ void slugfest::init_config() {
     general_options.has_mouse_sensitivity = false;
     recompui::config::create_general_tab(general_options);
 
-    auto& graphics_config = recompui::config::create_graphics_tab();
+    slugfest::track_aspect_ratio_setting(recompui::config::create_graphics_tab());
     recompui::config::create_controls_tab();
     recompui::config::create_sound_tab();
     recompui::config::create_mods_tab();
 
     recompui::config::finalize();
 
-    // RecompFrontend defaults to the Expand (widescreen) aspect ratio, which misplaces the 2D title
-    // and art screens (their backgrounds are drawn into the framebuffer by the CPU), making them
-    // flicker. Default new installs to Original; players can still choose Expand.
+    // Look the graphics config up again: the reference create_graphics_tab returned doesn't survive
+    // the other tabs being created.
+    auto& graphics_config = recompui::config::get_graphics_config();
+
     // The Display refresh rate makes RT64 generate in-between frames, which this game (30 fps, no
-    // interpolation support) shows as motion at double speed. Default to Original as well.
+    // interpolation support) shows as motion at double speed. Default new installs to Original.
     if (first_run) {
-        graphics_config.set_option_value(recompui::config::graphics::options::ar_option,
-            static_cast<uint32_t>(ultramodern::renderer::AspectRatio::Original));
         graphics_config.set_option_value(recompui::config::graphics::options::rr_option,
             static_cast<uint32_t>(ultramodern::renderer::RefreshRate::Original));
     }
+
+    slugfest::set_aspect_ratio_setting(std::get<uint32_t>(
+        graphics_config.get_option_value(recompui::config::graphics::options::ar_option)));
 }

@@ -197,7 +197,7 @@ value = 0x24060000 # addiu $a2, $zero, 0 (OS_MESG_NOBLOCK, was 1)
 [[patches.hook]]
 func = "func_8006EA30"
 before_vram = 0x8006EAF4
-text = "{ extern void yield_self_1ms(uint8_t*); yield_self_1ms(rdram); }"
+text = "{ extern void slugfest_yield_1ms(uint8_t*); slugfest_yield_1ms(rdram); }"
 
 # Frame submit (func_8012D2E4): cap the frame rate (see SlugfestRecomp/src/game/frame_pacing.cpp).
 # The game steps its logic by a fixed amount per frame and ran too fast at the 60 frames per second

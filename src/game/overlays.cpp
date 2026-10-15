@@ -11,6 +11,7 @@
 
 #include "recomp.h"
 #include "librecomp/overlays.hpp"
+#include "slugfest.h"
 
 namespace {
     struct Module {
@@ -19,21 +20,22 @@ namespace {
         uint32_t rom;       // offset in the working ROM (see build_decomp_rom.py)
         uint32_t vram;
         uint32_t size;      // code + data, matching the recompiled section size
+        bool widescreen;    // a 3D scene, shown with the Expand aspect ratio (see aspect_ratio.cpp)
         bool loaded;
     };
 
     // Matches the module table at 0x80067DA8 and the segments in kengriffeyslugfest.yaml.
     Module modules[] = {
-        { "toplevel", 0,  0x1000000, 0x8006A8A0, 0x2E9F0, false },
-        { "globals",  1,  0x102E9F0, 0x800F9B30, 0x0D0F0, false },
-        { "arts",     3,  0x103BAE0, 0x8010A880, 0x413C0, false },
-        { "frontend", 5,  0x107CEA0, 0x8014C3C0, 0xACED0, false },
-        { "gamebase", 7,  0x1129D70, 0x8014C3C0, 0x609F0, false },
-        { "flythru",  9,  0x118A760, 0x801B0930, 0x01560, false },
-        { "intro",    11, 0x118BCC0, 0x801B0930, 0x016D0, false },
-        { "game",     13, 0x118D390, 0x801B0930, 0x7BE90, false },
-        { "derby",    15, 0x1209220, 0x801B0930, 0x074C0, false },
-        { "party",    17, 0x12106E0, 0x801B0930, 0x0A710, false },
+        { "toplevel", 0,  0x1000000, 0x8006A8A0, 0x2E9F0, false, false },
+        { "globals",  1,  0x102E9F0, 0x800F9B30, 0x0D0F0, false, false },
+        { "arts",     3,  0x103BAE0, 0x8010A880, 0x413C0, false, false },
+        { "frontend", 5,  0x107CEA0, 0x8014C3C0, 0xACED0, false, false },
+        { "gamebase", 7,  0x1129D70, 0x8014C3C0, 0x609F0, false, false },
+        { "flythru",  9,  0x118A760, 0x801B0930, 0x01560, true,  false },
+        { "intro",    11, 0x118BCC0, 0x801B0930, 0x016D0, false, false },
+        { "game",     13, 0x118D390, 0x801B0930, 0x7BE90, true,  false },
+        { "derby",    15, 0x1209220, 0x801B0930, 0x074C0, true,  false },
+        { "party",    17, 0x12106E0, 0x801B0930, 0x0A710, true,  false },
     };
 
     void load_module(Module& module, uint32_t dest) {
@@ -74,4 +76,13 @@ extern "C" void slugfest_on_load_code(uint8_t* rdram, recomp_context* ctx) {
             return;
         }
     }
+}
+
+bool slugfest::widescreen_scene_loaded() {
+    for (const Module& module : modules) {
+        if (module.loaded && module.widescreen) {
+            return true;
+        }
+    }
+    return false;
 }
