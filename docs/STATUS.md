@@ -23,6 +23,7 @@ Last updated: 2026-10-13. Published at https://github.com/CalenCyr/SlugfestRecom
 - Temporary tracing: add `[[patches.hook]]` entries in `recomp/kengriffey.toml` that call a native `extern "C"` function (pattern used before: a `debug_hooks.cpp` with `slugfest_debug_sched(rdram, ctx, point)`), regenerate, rebuild, and remove when done.
 - RT64 inspector: set `"developer_mode": true` in graphics.json (game closed), F1 in game. Debugger tab → right-click a pixel to list its draw calls. F4 doesn't reach the Pause button (RT64 grabs it); "View Depth Buffer" crashes with MSAA on, so set `"msaa_option": "None"` first.
 - Reading game memory live: `/proc/<pid>/maps` has the `memfd:slugfest_rdram` mapping; words are stored native little-endian at `base + (addr & 0x7FFFFF)` (byte fields are XOR-3 swapped).
+- One-frame glitches: screenshots (`spectacle`) are too slow, and xdotool can't reach the native Wayland window. What worked (2026-10-14): a temporary wrapper around `get_n64_input` in main.cpp that ORs in buttons at set times, a thread calling `recomp::start_game(u8"slugfest.n64.us.1.0", {})` to skip the launcher, and a 400 ms wait per frame in `slugfest_pace_frame` once the press happens. Then dump both framebuffers (0x807B5000 and 0x807DA800, 320x240 RGBA16) from the memfd mapping, and use a gdb `watch -l` on the bad pixel to find the writer.
 - Run with a log: `./build/SlugfestRecompiled > run.log 2>&1` (stderr has the runtime and `[Slugfest]` messages).
 
 ## Fixes made so far (for context)
@@ -36,6 +37,7 @@ Recompiler side (`recomp/`):
 
 RT64 (`lib/rt64` points at the fork https://github.com/CalenCyr/rt64, branch `slugfest-prim-depth`; worth offering upstream):
 - Player shadows flickered. The game draws each shadow as the flattened player model with primitive depth 0x7FFF, depth compare and update on, so overlapping triangles blend only once. RT64 scaled prim depth by 1/32767 (0x7FFF = 1.0, equal to the cleared depth buffer, so `LESS` failed except for rounding noise). Fixed by using the RDP's 18-bit scale (`z << 3`, matching `D16::toF`), and by collapsing the viewport depth range to the prim depth for those draws so every pixel gets exactly the same depth.
+- Black bar after pressing Start on the title screen (rows 154-159, a few frames). The intro memcpys its background into the framebuffer every frame, so RT64 uploads the RDRAM changes before drawing. After Start the blinking "PRESS START" frames only draw rows 130-153, which shrinks the tracked framebuffer height to 154; the next RDRAM upload reads 154 rows into a pooled change texture rounded up to 160, and `writeChanges` then applied it using the framebuffer's new height (239), drawing the 6 stale rows. `writeChanges` now stops at the rows that were read (`FramebufferChange::usedHeight`).
 - To update RT64: rebase `slugfest-prim-depth` on the new upstream commit, push to the fork, and update the submodule pointer.
 
 Runtime project (`src/`):
