@@ -126,6 +126,15 @@ static bool set_window_icon(SDL_Window* window) {
 
 SDL_Window* window;
 
+float slugfest::window_aspect_ratio() {
+    int width = 0;
+    int height = 0;
+    if (window != nullptr) {
+        SDL_GetWindowSizeInPixels(window, &width, &height);
+    }
+    return (width > 0 && height > 0) ? float(width) / float(height) : 4.0f / 3.0f;
+}
+
 ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::gfx_data_t) {
     uint32_t flags = SDL_WINDOW_RESIZABLE;
 

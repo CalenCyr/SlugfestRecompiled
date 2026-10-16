@@ -206,3 +206,17 @@ text = "{ extern void slugfest_yield_1ms(uint8_t*); slugfest_yield_1ms(rdram); }
 func = "func_8012D2E4"
 before_vram = 0x8012D2E4
 text = "{ extern void slugfest_pace_frame(uint8_t*, recomp_context*); slugfest_pace_frame(rdram, ctx); }"
+
+# Camera setup (func_8012780C): widen the horizontal culling planes to the window's aspect ratio
+# with Expand, so models near the sides of a widescreen view aren't culled (see
+# SlugfestRecomp/src/game/aspect_ratio.cpp). The first hook runs before the jal to func_801279E8,
+# the second after it returns.
+[[patches.hook]]
+func = "func_8012780C"
+before_vram = 0x80127944
+text = "{ extern void slugfest_widen_culling(uint8_t*, recomp_context*); slugfest_widen_culling(rdram, ctx); }"
+
+[[patches.hook]]
+func = "func_8012780C"
+before_vram = 0x8012794C
+text = "{ extern void slugfest_restore_culling(uint8_t*, recomp_context*); slugfest_restore_culling(rdram, ctx); }"

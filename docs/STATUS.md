@@ -12,7 +12,7 @@ Last updated: 2026-10-13. Published at https://github.com/CalenCyr/SlugfestRecom
 ## Open issues (in suggested order)
 
 1. **More play-testing:** Home Run Derby, season mode, save/load, Controller Pak, rumble. Expect more busy-wait loops like `func_8006EA30` (fix: `[[patches.hook]]` calling `slugfest_yield_1ms(rdram)` inside the loop; not `yield_self_1ms`, which crashes on quit).
-2. **Widescreen details:** in Expand, gameplay HUD panels that slide in from off-screen are visible in the side areas while they move. Untested: the settings menu opened mid-game, Home Run Derby, and the in-game pause menu (gamebase/game are loaded, so it is widened).
+2. **Widescreen HUD:** the gameplay HUD stays in the centered 4:3 area (RT64 can only move 2D elements to the screen edges when the display list says which edge they belong to). Tried and shelved (2026-10-15): grouping touching texture rectangles in RT64 and anchoring each group by position. The pitcher cards mix three kinds of draws (gamebase's sprite drawer func_801891F4 for logos and the speed panel, another routine for the card text, and orthographic triangles for the card panels), so the panels stayed centered while their text moved. The work is in `lib/rt64`'s git stash ("WIP: rectangle auto-anchoring"). A real fix means anchoring each HUD routine in the game code (emit `gEXSetRectAlign`/`gEXSetViewportAlign` into its display list; sprite lists are sized exactly, see func_80188CD0's capacity at sprite+0x2E).
 3. **Windows:** `src/game/memory_mirror.cpp` (KSEG1 mirror + guard below RDRAM) is Linux-only.
 4. **Cleanup:** if the memory guard ever fires, the core dump names the game function writing through a physical address. `~/Code/N64Recomp` is no longer used by this project (N64Recomp is now the `tools/N64Recomp` submodule) and can be deleted, along with the old generated files in it.
 
@@ -42,7 +42,7 @@ RT64 (`lib/rt64` points at the fork https://github.com/CalenCyr/rt64, branch `sl
 
 Runtime project (`src/`):
 - `yield.cpp`: crash when quitting mid-game. `recomp::start` unmaps RDRAM on quit without stopping game threads; the frame cap's wait loop kept calling `yield_self_1ms`, which reads the running queue from RDRAM (segfault every time the quit landed during a wait). `slugfest_yield_1ms` parks the thread once the runtime is exiting; use it for every native busy-wait.
-- `aspect_ratio.cpp`: widescreen only in 3D scenes (see above).
+- `aspect_ratio.cpp`: widescreen only in 3D scenes (see above), and the game's culling widened to the window's aspect ratio. Camera setup (func_8012780C) stores sin/cos of the horizontal half FOV at camera+0x64/+0x6C; func_801279E8 builds the left/right culling planes from them (the projection uses the cotangent at +0x5C), so hooks around that call widen the angle and restore it. Without this, models near the sides of a widescreen view popped in and out.
 - `overlays.cpp`: tracks loaded modules and calls `unload_overlays`/`load_overlays` per module.
 - `frame_pacing.cpp`: caps the game at one frame per 2 video refreshes (30 fps). The game steps its logic a fixed amount per frame with no limiter of its own; uncapped, the menus ran at 60 and gameplay ran at 30 or 60 depending on RT64's presentation mode (Display = double speed). Uses the game's refresh counter (0x80090674) so its measured frame time (0x8014A45C) stays consistent. `SLUGFEST_FRAME_REFRESHES=N` overrides.
 - `runtime_stubs.cpp`: libultra functions this runtime version lacks.

@@ -26,6 +26,7 @@ namespace slugfest {
     // Expand only in 3D scenes (see aspect_ratio.cpp).
     void track_aspect_ratio_setting(recomp::config::Config& graphics_config);
     void set_aspect_ratio_setting(uint32_t value);
+    float window_aspect_ratio();
 }
 
 #endif
