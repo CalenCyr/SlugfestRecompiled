@@ -1,4 +1,4 @@
-// Widescreen only where the game can show it.
+// Widescreen and frame interpolation only where the game can show them.
 //
 // With RT64's Expand aspect ratio the 3D scenes render correctly at any width, but the menus and
 // the title screen don't: the menu panels are drawn with the same full-screen perspective
@@ -6,7 +6,11 @@
 // hide, and the title and art screens are backgrounds the CPU writes into the framebuffer.
 //
 // So while the player has chosen Expand, the renderer uses Original whenever no 3D module is
-// loaded. slugfest_update_aspect_ratio runs once per frame (from the frame cap hook).
+// loaded. The same goes for the refresh rate: with Display (or Manual) RT64 renders in-between
+// frames, and on the screens whose image the CPU writes into the framebuffer (the boot logos, the
+// title) some of those frames showed the picture as a grid of dots. Those screens and the menus
+// gain nothing from interpolation, so they use Original. slugfest_update_scene_settings runs once
+// per frame (from the frame cap hook).
 //
 // The game also culls models against its own 4:3 view frustum, so with Expand they popped in and
 // out near the sides of the screen. Camera setup (func_8012780C) stores the sine and cosine of the
@@ -26,9 +30,11 @@
 
 namespace {
     using ultramodern::renderer::AspectRatio;
+    using ultramodern::renderer::RefreshRate;
 
-    // The player's setting, as last loaded or applied in the settings menu.
-    std::atomic<AspectRatio> player_choice = AspectRatio::Original;
+    // The player's settings, as last loaded or applied in the settings menu.
+    std::atomic<AspectRatio> player_aspect_ratio = AspectRatio::Original;
+    std::atomic<RefreshRate> player_refresh_rate = RefreshRate::Original;
 
     // The aspect ratio the renderer currently uses (game thread only).
     bool expanded = false;
@@ -53,31 +59,38 @@ namespace {
     }
 }
 
-void slugfest::track_aspect_ratio_setting(recomp::config::Config& graphics_config) {
+void slugfest::track_scene_settings(recomp::config::Config& graphics_config) {
+    // Temporary changes are previews that haven't been applied yet.
     graphics_config.add_option_change_callback(recompui::config::graphics::options::ar_option,
         [](recomp::config::ConfigValueVariant cur_value, recomp::config::ConfigValueVariant, recomp::config::OptionChangeContext context) {
-            // Temporary changes are previews that haven't been applied yet.
             if (context != recomp::config::OptionChangeContext::Temporary) {
-                player_choice = static_cast<AspectRatio>(std::get<uint32_t>(cur_value));
+                player_aspect_ratio = static_cast<AspectRatio>(std::get<uint32_t>(cur_value));
+            }
+        });
+    graphics_config.add_option_change_callback(recompui::config::graphics::options::rr_option,
+        [](recomp::config::ConfigValueVariant cur_value, recomp::config::ConfigValueVariant, recomp::config::OptionChangeContext context) {
+            if (context != recomp::config::OptionChangeContext::Temporary) {
+                player_refresh_rate = static_cast<RefreshRate>(std::get<uint32_t>(cur_value));
             }
         });
 }
 
-void slugfest::set_aspect_ratio_setting(uint32_t value) {
-    player_choice = static_cast<AspectRatio>(value);
+void slugfest::set_scene_settings(uint32_t aspect_ratio, uint32_t refresh_rate) {
+    player_aspect_ratio = static_cast<AspectRatio>(aspect_ratio);
+    player_refresh_rate = static_cast<RefreshRate>(refresh_rate);
 }
 
-extern "C" void slugfest_update_aspect_ratio() {
-    AspectRatio wanted = player_choice;
-    if (wanted == AspectRatio::Expand && !slugfest::widescreen_scene_loaded()) {
-        wanted = AspectRatio::Original;
-    }
+extern "C" void slugfest_update_scene_settings() {
+    bool scene_3d = slugfest::widescreen_scene_loaded();
+    AspectRatio aspect_ratio = scene_3d ? player_aspect_ratio.load() : AspectRatio::Original;
+    RefreshRate refresh_rate = scene_3d ? player_refresh_rate.load() : RefreshRate::Original;
 
-    expanded = (wanted == AspectRatio::Expand);
+    expanded = (aspect_ratio == AspectRatio::Expand);
 
     ultramodern::renderer::GraphicsConfig config = ultramodern::renderer::get_graphics_config();
-    if (config.ar_option != wanted) {
-        config.ar_option = wanted;
+    if (config.ar_option != aspect_ratio || config.rr_option != refresh_rate) {
+        config.ar_option = aspect_ratio;
+        config.rr_option = refresh_rate;
         ultramodern::renderer::set_graphics_config(config);
     }
 }

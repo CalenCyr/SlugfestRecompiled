@@ -20,7 +20,7 @@ void slugfest::init_config() {
     general_options.has_mouse_sensitivity = false;
     recompui::config::create_general_tab(general_options);
 
-    slugfest::track_aspect_ratio_setting(recompui::config::create_graphics_tab());
+    slugfest::track_scene_settings(recompui::config::create_graphics_tab());
     recompui::config::create_controls_tab();
     recompui::config::create_sound_tab();
     recompui::config::create_mods_tab();
@@ -38,6 +38,7 @@ void slugfest::init_config() {
             static_cast<uint32_t>(ultramodern::renderer::RefreshRate::Original));
     }
 
-    slugfest::set_aspect_ratio_setting(std::get<uint32_t>(
-        graphics_config.get_option_value(recompui::config::graphics::options::ar_option)));
+    slugfest::set_scene_settings(
+        std::get<uint32_t>(graphics_config.get_option_value(recompui::config::graphics::options::ar_option)),
+        std::get<uint32_t>(graphics_config.get_option_value(recompui::config::graphics::options::rr_option)));
 }

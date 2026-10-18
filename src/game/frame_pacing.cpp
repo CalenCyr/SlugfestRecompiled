@@ -18,7 +18,7 @@
 #include "recomp.h"
 
 extern "C" void slugfest_yield_1ms(uint8_t* rdram);
-extern "C" void slugfest_update_aspect_ratio();
+extern "C" void slugfest_update_scene_settings();
 
 namespace {
     constexpr gpr vi_counter_addr = (gpr)(int32_t)0x80090674;
@@ -55,5 +55,5 @@ extern "C" void slugfest_pace_frame(uint8_t* rdram, recomp_context* ctx) {
     previous_frame = (uint32_t)MEM_W(0, vi_counter_addr);
     have_previous = true;
 
-    slugfest_update_aspect_ratio();
+    slugfest_update_scene_settings();
 }
