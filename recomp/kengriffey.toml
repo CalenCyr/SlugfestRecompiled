@@ -220,3 +220,10 @@ text = "{ extern void slugfest_widen_culling(uint8_t*, recomp_context*); slugfes
 func = "func_8012780C"
 before_vram = 0x8012794C
 text = "{ extern void slugfest_restore_culling(uint8_t*, recomp_context*); slugfest_restore_culling(rdram, ctx); }"
+
+# Boot thread (func_8006AEE0): keep the N64 Sports logo on screen after func_8006ACE0 shows it
+# (see SlugfestRecomp/src/game/boot_logo.cpp).
+[[patches.hook]]
+func = "func_8006AEE0"
+before_vram = 0x8006AF34
+text = "{ extern void slugfest_hold_boot_logo(uint8_t*, recomp_context*); slugfest_hold_boot_logo(rdram, ctx); }"

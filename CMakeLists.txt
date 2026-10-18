@@ -101,6 +101,7 @@ set(SOURCES
     ${CMAKE_SOURCE_DIR}/src/main/register_overlays.cpp
 
     ${CMAKE_SOURCE_DIR}/src/game/aspect_ratio.cpp
+    ${CMAKE_SOURCE_DIR}/src/game/boot_logo.cpp
     ${CMAKE_SOURCE_DIR}/src/game/config.cpp
     ${CMAKE_SOURCE_DIR}/src/game/memory_mirror.cpp
     ${CMAKE_SOURCE_DIR}/src/game/overlays.cpp
