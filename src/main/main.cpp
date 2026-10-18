@@ -404,6 +404,8 @@ int main(int argc, char** argv) {
 
     slugfest::init_config();
 
+    slugfest::start_memory_watchdog();
+
     recomp::rsp::callbacks_t rsp_callbacks{
         .get_rsp_microcode = get_rsp_microcode,
     };

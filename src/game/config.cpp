@@ -39,6 +39,5 @@ void slugfest::init_config() {
     }
 
     slugfest::set_scene_settings(
-        std::get<uint32_t>(graphics_config.get_option_value(recompui::config::graphics::options::ar_option)),
-        std::get<uint32_t>(graphics_config.get_option_value(recompui::config::graphics::options::rr_option)));
+        std::get<uint32_t>(graphics_config.get_option_value(recompui::config::graphics::options::ar_option)));
 }

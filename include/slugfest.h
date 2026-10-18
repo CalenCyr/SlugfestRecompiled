@@ -23,10 +23,13 @@ namespace slugfest {
     bool widescreen_scene_loaded();
     void init_config();
 
-    // The aspect ratio and refresh rate settings apply only in 3D scenes (see aspect_ratio.cpp).
+    // The aspect ratio setting applies only in 3D scenes (see aspect_ratio.cpp).
     void track_scene_settings(recomp::config::Config& graphics_config);
-    void set_scene_settings(uint32_t aspect_ratio, uint32_t refresh_rate);
+    void set_scene_settings(uint32_t aspect_ratio);
     float window_aspect_ratio();
+
+    // Aborts if the process's memory runs away (see memory_watchdog.cpp).
+    void start_memory_watchdog();
 }
 
 #endif

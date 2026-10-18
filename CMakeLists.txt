@@ -104,6 +104,7 @@ set(SOURCES
     ${CMAKE_SOURCE_DIR}/src/game/boot_logo.cpp
     ${CMAKE_SOURCE_DIR}/src/game/config.cpp
     ${CMAKE_SOURCE_DIR}/src/game/memory_mirror.cpp
+    ${CMAKE_SOURCE_DIR}/src/game/memory_watchdog.cpp
     ${CMAKE_SOURCE_DIR}/src/game/overlays.cpp
     ${CMAKE_SOURCE_DIR}/src/game/frame_pacing.cpp
     ${CMAKE_SOURCE_DIR}/src/game/rom_decompression.cpp
