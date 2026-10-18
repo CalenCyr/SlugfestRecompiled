@@ -12,6 +12,11 @@
 // gain nothing from interpolation, so they use Original. slugfest_update_scene_settings runs once
 // per frame (from the frame cap hook).
 //
+// On those screens RT64 also uploads the whole framebuffer when the CPU rewrites it (see
+// setUploadWholeFramebuffers in the RT64 fork). The title copies its background in every frame
+// and draws the fading PRESS START over it; with only the changed pixels uploaded, the faint edges
+// of the letters were never reset at higher resolutions and built up into a bright fringe.
+//
 // The game also culls models against its own 4:3 view frustum, so with Expand they popped in and
 // out near the sides of the screen. Camera setup (func_8012780C) stores the sine and cosine of the
 // horizontal half field of view at camera+0x64/+0x6C, and func_801279E8 builds the left and right
@@ -27,6 +32,11 @@
 #include "slugfest.h"
 #include "recompui/config.h"
 #include "ultramodern/config.hpp"
+
+namespace RT64 {
+    // lib/rt64/src/hle/rt64_framebuffer_manager.h
+    void setUploadWholeFramebuffers(bool enabled);
+}
 
 namespace {
     using ultramodern::renderer::AspectRatio;
@@ -86,6 +96,7 @@ extern "C" void slugfest_update_scene_settings() {
     RefreshRate refresh_rate = scene_3d ? player_refresh_rate.load() : RefreshRate::Original;
 
     expanded = (aspect_ratio == AspectRatio::Expand);
+    RT64::setUploadWholeFramebuffers(!scene_3d);
 
     ultramodern::renderer::GraphicsConfig config = ultramodern::renderer::get_graphics_config();
     if (config.ar_option != aspect_ratio || config.rr_option != refresh_rate) {
