@@ -1,0 +1,16 @@
+#!/bin/sh
+# AppImage entry point. The game loads assets/ and recompcontrollerdb.txt relative to the working
+# directory, so start it from the directory that holds them. Saves and settings still go to
+# ~/.config/SlugfestRecompiled.
+HERE="$(dirname "$(readlink -f "$0")")"
+export APPDIR="${APPDIR:-$HERE}"
+
+# Environment set up by linuxdeploy plugins (GTK, for the file dialog).
+if [ -d "$APPDIR/apprun-hooks" ]; then
+    for hook in "$APPDIR"/apprun-hooks/*.sh; do
+        [ -f "$hook" ] && . "$hook"
+    done
+fi
+
+cd "$APPDIR/usr/bin" || exit 1
+exec ./SlugfestRecompiled "$@"

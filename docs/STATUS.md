@@ -9,6 +9,10 @@ Last updated: 2026-10-13. Published at https://github.com/CalenCyr/SlugfestRecom
 - Widescreen: with the Expand aspect ratio, gameplay (game, derby, party, flythru modules) renders at the window's width and the menus and title stay 4:3 (`src/game/aspect_ratio.cpp` switches RT64 to Original while no 3D module is loaded; the menu panels use the same full-screen perspective projection as gameplay, so RT64 can't tell them apart itself).
 - Defaults for new installs: refresh rate Original (Display makes RT64 add in-between frames, and motion plays at double speed even though the game runs at the correct 30 fps). The aspect ratio uses RecompFrontend's default (Expand).
 
+## Releases
+
+- Beta AppImages go on GitHub Releases as pre-releases (first: v0.1.0-beta.1, 2026-10-18). Build with `scripts/build-appimage.sh` (Docker, Ubuntu 22.04, glibc 2.35, for SteamOS), set `version_string` in `src/main/main.cpp` first, then tag `v<version>` and `gh release create --prerelease` with `dist/*.AppImage`.
+
 ## Open issues (in suggested order)
 
 1. **More play-testing:** Home Run Derby, season mode, save/load, Controller Pak, rumble. Expect more busy-wait loops like `func_8006EA30` (fix: `[[patches.hook]]` calling `slugfest_yield_1ms(rdram)` inside the loop; not `yield_self_1ms`, which crashes on quit).

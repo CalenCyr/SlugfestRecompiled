@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Ken Griffey Jr.'s Slugfest: Recompiled
+Comment=Native port of Ken Griffey Jr.'s Slugfest (N64)
+Exec=SlugfestRecompiled
+Icon=SlugfestRecompiled
+Categories=Game;
+Terminal=false
+StartupWMClass=SlugfestRecompiled

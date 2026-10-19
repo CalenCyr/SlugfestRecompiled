@@ -47,3 +47,13 @@ Run from the project root, because the UI loads `assets/` and `recompcontrollerd
 ```
 
 On first launch, select your ROM in the launcher. The runtime checks its hash and stores a copy in its config folder.
+
+## AppImage (for releases and the Steam Deck)
+
+```bash
+scripts/build-appimage.sh
+```
+
+This builds the game in an Ubuntu 22.04 Docker container (`packaging/linux/Dockerfile`), so the binary runs on SteamOS and other distributions with glibc 2.35 or newer, and packages it with linuxdeploy into `dist/SlugfestRecompiled-<version>-x86_64.AppImage`. It needs Docker and the recompiled code from step 2; the ROM isn't packaged. The version comes from `version_string` in `src/main/main.cpp`.
+
+The AppImage starts the game from its own folder, where `assets/` and `recompcontrollerdb.txt` are bundled (`packaging/linux/AppRun`).

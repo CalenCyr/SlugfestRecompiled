@@ -27,3 +27,6 @@ saves/
 /recomp/splat.log
 run.log
 __pycache__/
+
+# AppImage output (scripts/build-appimage.sh)
+/dist/
